@@ -71,6 +71,7 @@ class Morador {
 class Encomenda {
   final int? id;
   final String descricao;
+  final String? codigo;
   final int idMorador;
   final String dataEntrada;
   final String? dataSaida;
@@ -81,6 +82,7 @@ class Encomenda {
   Encomenda({
     this.id,
     required this.descricao,
+    this.codigo,
     required this.idMorador,
     required this.dataEntrada,
     this.dataSaida,
@@ -93,6 +95,7 @@ class Encomenda {
     return {
       'id': id,
       'descricao': descricao,
+      'codigo': codigo,
       'id_morador': idMorador,
       'data_entrada': dataEntrada,
       'data_saida': dataSaida,
@@ -106,6 +109,7 @@ class Encomenda {
     return Encomenda(
       id: map['id'] as int?,
       descricao: map['descricao'] as String,
+      codigo: map['codigo'] as String?,
       idMorador: map['id_morador'] as int,
       dataEntrada: map['data_entrada'] as String,
       dataSaida: map['data_saida'] as String?,
@@ -148,7 +152,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE porteiro (
@@ -172,6 +176,7 @@ class DatabaseHelper {
           CREATE TABLE encomenda (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             descricao TEXT NOT NULL,
+            codigo TEXT,
             id_morador INTEGER NOT NULL,
             data_entrada TEXT NOT NULL,
             data_saida TEXT,
@@ -187,6 +192,10 @@ class DatabaseHelper {
           await db.execute('ALTER TABLE encomenda ADD COLUMN foto_path TEXT');
           await db
               .execute('ALTER TABLE encomenda ADD COLUMN retirado_por TEXT');
+        }
+
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE encomenda ADD COLUMN codigo TEXT');
         }
       },
     );
@@ -287,6 +296,7 @@ class DatabaseHelper {
       SELECT
         e.id,
         e.descricao,
+        e.codigo,
         e.data_entrada,
         e.data_saida,
         e.status,

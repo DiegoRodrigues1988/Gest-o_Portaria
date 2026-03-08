@@ -8,6 +8,7 @@ import 'screens/encomendas_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/moradores_screen.dart';
 import 'screens/porteiros_screen.dart';
+import 'screens/relatorio_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ class GestaoPortariaApp extends StatelessWidget {
         EncomendasScreen.routeName: (context) => const EncomendasScreen(),
         MoradoresScreen.routeName: (context) => const MoradoresScreen(),
         PorteirosScreen.routeName: (context) => const PorteirosScreen(),
+        RelatorioScreen.routeName: (context) => const RelatorioScreen(),
       },
     );
   }

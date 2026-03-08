@@ -201,6 +201,7 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
   Future<void> _addEncomenda() async {
     final formKey = GlobalKey<FormState>();
     final descricaoCtrl = TextEditingController();
+    final codigoCtrl = TextEditingController();
     Morador? selectedMorador = _moradores.isNotEmpty ? _moradores.first : null;
     String? photoPath;
 
@@ -229,6 +230,12 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
                                   : null,
                         ),
                         const SizedBox(height: 12),
+                        TextFormField(
+                          controller: codigoCtrl,
+                          decoration:
+                              const InputDecoration(labelText: 'Código'),
+                        ),
+                        const SizedBox(height: 12),
                         if (_moradores.isEmpty)
                           const Text(
                               'Cadastre um morador antes de registrar uma encomenda.')
@@ -253,11 +260,14 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
                         if (photoPath != null)
                           Column(
                             children: [
-                              Image.file(
-                                File(photoPath!),
-                                width: 140,
-                                height: 140,
-                                fit: BoxFit.cover,
+                              GestureDetector(
+                                onTap: () => _showPhotoPreview(photoPath!),
+                                child: Image.file(
+                                  File(photoPath!),
+                                  width: 140,
+                                  height: 140,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                               const SizedBox(height: 8),
                             ],
@@ -290,9 +300,12 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
                         if (moradorId == null) return;
 
                         final now = DateTime.now().toIso8601String();
+                        final codigo = codigoCtrl.text.trim();
+
                         await DatabaseHelper.instance.insertEncomenda(
                           Encomenda(
                             descricao: descricaoCtrl.text.trim(),
+                            codigo: codigo.isEmpty ? null : codigo,
                             idMorador: moradorId,
                             dataEntrada: now,
                             status: 'pendente',
@@ -315,6 +328,67 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> _showPhotoPreview(String photoPath) async {
+    if (!File(photoPath).existsSync()) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        final maxHeight = MediaQuery.of(context).size.height * 0.8;
+        final maxWidth = MediaQuery.of(context).size.width * 0.9;
+
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: maxWidth,
+            height: maxHeight,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    'Foto da encomenda',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return InteractiveViewer(
+                        panEnabled: true,
+                        minScale: 0.5,
+                        maxScale: 4,
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight,
+                                maxWidth: constraints.maxWidth),
+                            child: Image.file(
+                              File(photoPath),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Fechar'),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -505,6 +579,8 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
                                         (item['morador_whatsapp'] as String?) ??
                                             '';
                                     final id = (item['id'] as int?) ?? 0;
+                                    final codigo =
+                                        (item['codigo'] as String?) ?? '';
                                     final fotoPath =
                                         (item['foto_path'] as String?) ?? '';
                                     final retiradoPor =
@@ -515,10 +591,14 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
                                     Widget? leading;
                                     if (fotoPath.isNotEmpty &&
                                         File(fotoPath).existsSync()) {
-                                      leading = CircleAvatar(
-                                        backgroundImage:
-                                            FileImage(File(fotoPath)),
-                                        radius: 26,
+                                      leading = GestureDetector(
+                                        onTap: () =>
+                                            _showPhotoPreview(fotoPath),
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              FileImage(File(fotoPath)),
+                                          radius: 26,
+                                        ),
                                       );
                                     }
 
@@ -529,7 +609,7 @@ class _EncomendasScreenState extends State<EncomendasScreen> {
                                         leading: leading,
                                         title: Text(item['descricao'] ?? ''),
                                         subtitle: Text(
-                                          'Morador: $nome ($apto)\nentrada: ${item['data_entrada'] ?? ''}\nstatus: $status' +
+                                          '${codigo.isNotEmpty ? 'Código: $codigo\n' : ''}Morador: $nome ($apto)\nentrada: ${item['data_entrada'] ?? ''}\nstatus: $status' +
                                               (status == 'entregue'
                                                   ? '\nretirado por: $retiradoPor\nsaida: $dataSaida'
                                                   : ''),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../database_helper.dart';
+import '../widgets/portaria_background.dart';
 import 'encomendas_screen.dart';
 import 'login_screen.dart';
 import 'moradores_screen.dart';
 import 'porteiros_screen.dart';
+import 'relatorio_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   static const routeName = '/dashboard';
@@ -16,8 +18,10 @@ class DashboardScreen extends StatelessWidget {
     final porteiro = ModalRoute.of(context)!.settings.arguments as Porteiro?;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0B1D38),
       appBar: AppBar(
         title: const Text('Painel Principal'),
+        backgroundColor: const Color(0xFF102D4C),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -28,67 +32,84 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (porteiro != null)
-              Text(
-                'Bem-vindo, ${porteiro.nome} (${porteiro.periodo})',
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: [
-                  _DashboardCard(
-                    icon: Icons.inventory_2,
-                    title: 'Gestão de Encomendas',
-                    subtitle: 'Registrar entrada, dar baixa e histórico',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => EncomendasScreen(
-                            porteiro: porteiro,
-                          ),
-                        ),
-                      );
-                    },
+      body: Stack(
+        children: [
+          const PortariaBackground(),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (porteiro != null)
+                  Text(
+                    'Bem-vindo, ${porteiro.nome} (${porteiro.periodo})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
-                  _DashboardCard(
-                    icon: Icons.people,
-                    title: 'Gestão de Moradores',
-                    subtitle: 'Cadastrar, listar e excluir moradores',
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(MoradoresScreen.routeName);
-                    },
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _DashboardCard(
+                        icon: Icons.inventory_2,
+                        title: 'Gestão de Encomendas',
+                        subtitle: 'Registrar entrada, dar baixa e histórico',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => EncomendasScreen(
+                                porteiro: porteiro,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _DashboardCard(
+                        icon: Icons.people,
+                        title: 'Gestão de Moradores',
+                        subtitle: 'Cadastrar, listar e excluir moradores',
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(MoradoresScreen.routeName);
+                        },
+                      ),
+                      _DashboardCard(
+                        icon: Icons.admin_panel_settings,
+                        title: 'Gestão de Porteiros',
+                        subtitle: 'Cadastrar, listar e excluir porteiros',
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(PorteirosScreen.routeName);
+                        },
+                      ),
+                      _DashboardCard(
+                        icon: Icons.picture_as_pdf,
+                        title: 'Exportar Relatório (PDF)',
+                        subtitle: 'Gerar e salvar relatório de encomendas',
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(EncomendasScreen.routeName);
+                        },
+                      ),
+                      _DashboardCard(
+                        icon: Icons.notes,
+                        title: 'Escrever relatório',
+                        subtitle: 'Registrar observações e exportar arquivo',
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(RelatorioScreen.routeName);
+                        },
+                      ),
+                    ],
                   ),
-                  _DashboardCard(
-                    icon: Icons.admin_panel_settings,
-                    title: 'Gestão de Porteiros',
-                    subtitle: 'Cadastrar, listar e excluir porteiros',
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(PorteirosScreen.routeName);
-                    },
-                  ),
-                  _DashboardCard(
-                    icon: Icons.picture_as_pdf,
-                    title: 'Exportar Relatório (PDF)',
-                    subtitle: 'Gerar e salvar relatório de encomendas',
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(EncomendasScreen.routeName);
-                    },
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
